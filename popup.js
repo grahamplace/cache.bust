@@ -84,17 +84,29 @@ function setActiveIndicator(enabled) {
   mode.textContent = enabled ? "ENGAGED" : "IDLE";
 }
 
+function looksLikeOurTimestamp(value) {
+  // Our cache-bust values are Date.now() — 13 digits today, plausibly 14 by
+  // 2286. Treat any all-digit value in the last ~10 minutes (or near future,
+  // for clock skew) as ours, not the host page's.
+  if (!/^\d{10,14}$/.test(value)) return false;
+
+  const num = Number(value);
+  if (!Number.isFinite(num)) return false;
+
+  const now = Date.now();
+  const tenMinutes = 10 * 60 * 1000;
+  return num >= now - tenMinutes && num <= now + 60_000;
+}
+
 function checkParamCollision() {
   if (!currentTab || !currentTab.url) return;
 
   const paramName = normalizeParamName(document.getElementById("paramName").value);
   const url = new URL(currentTab.url);
-  const collides =
-    url.searchParams.has(paramName) &&
-    url.searchParams.get(paramName) !== String(Date.now()).slice(0, 10);
+  const existing = url.searchParams.get(paramName);
 
-  // The page's own param will be overwritten on every refresh. Warn so the
-  // user can pick a different name if it would break the host page.
+  const collides = existing !== null && !looksLikeOurTimestamp(existing);
+
   if (collides) {
     setStatus(`paramName overlaps page's '${paramName}'`, "warn");
   } else {
