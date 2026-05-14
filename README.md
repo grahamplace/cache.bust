@@ -2,7 +2,7 @@
 
 Chrome extension that auto-refreshes a page on an interval, with a fresh `?_cb=<timestamp>` appended each tick and `Cache-Control: no-cache` request headers attached. Best-effort cache-busting from the client side, for the times you're watching a page whose cache headers say to wait five minutes and the data has already changed.
 
-Built it for live-monitoring election results stuck behind a CDN. Also handy for status pages, ticket queues, deploy dashboards — anything similar.
+Useful for status pages, ticket queues, deploy dashboards — anything you'd otherwise be hitting Cmd-Shift-R on every few seconds.
 
 ![cache.bust popup](docs/popup.png)
 
