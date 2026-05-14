@@ -167,6 +167,33 @@ async function saveConfig() {
   }, 350);
 }
 
+async function turnOff() {
+  if (!currentTab || !currentStorageKey) return;
+
+  const config = {
+    ...readConfigFromForm(),
+    enabled: false
+  };
+
+  await chrome.storage.local.set({
+    [currentStorageKey]: config
+  });
+
+  writeConfigToForm(config);
+
+  await sendRuntimeMessage({
+    type: "DISABLE_NO_CACHE_HEADERS",
+    tabId: currentTab.id
+  });
+
+  await sendRuntimeMessage({
+    type: "CLEAR_BADGE",
+    tabId: currentTab.id
+  });
+
+  setStatus("Auto-refresh turned off.", "success");
+}
+
 async function hardReloadNow() {
   if (!currentTab) return;
 
@@ -194,6 +221,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("save").addEventListener("click", () => {
     saveConfig().catch((error) => {
+      console.error(error);
+      setStatus(error instanceof Error ? error.message : String(error), "error");
+    });
+  });
+
+  document.getElementById("turnOff").addEventListener("click", () => {
+    turnOff().catch((error) => {
       console.error(error);
       setStatus(error instanceof Error ? error.message : String(error), "error");
     });
