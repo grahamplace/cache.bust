@@ -2,138 +2,576 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Cache-Bust Auto Refresh</title>
+    <title>cache.bust</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=VT323&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        color-scheme: light dark;
+        --bg: #0b0b0a;
+        --bg-elev: #161613;
+        --bg-input: #1c1c18;
+        --border: #2a2a26;
+        --border-strong: #3d3d37;
+        --text: #ede9dd;
+        --text-dim: #7a786e;
+        --text-faint: #4a4a45;
+        --accent: #d4ff3f;
+        --accent-hover: #e5ff6a;
+        --accent-dim: #8fb02a;
+        --danger: #ff5c42;
       }
 
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
       body {
-        width: 320px;
         margin: 0;
-        padding: 14px;
-        font-family:
-          system-ui,
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif;
-        font-size: 14px;
-      }
-
-      h1 {
-        margin: 0 0 10px;
-        font-size: 16px;
-      }
-
-      .url {
-        margin-bottom: 12px;
-        padding: 8px;
-        border-radius: 8px;
-        background: rgba(127, 127, 127, 0.12);
-        overflow-wrap: anywhere;
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+          monospace;
         font-size: 12px;
-        line-height: 1.35;
+        font-weight: 400;
+        width: 340px;
+        -webkit-font-smoothing: antialiased;
       }
 
-      label {
-        display: block;
-        margin-top: 12px;
+      /* faint horizontal scanlines for the monitor feel */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent 0,
+          transparent 2px,
+          rgba(255, 255, 255, 0.014) 2px,
+          rgba(255, 255, 255, 0.014) 3px
+        );
+        z-index: 10;
       }
 
-      .checkbox-label {
+      /* outer corner brackets, instrument-panel detail */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 6px;
+        pointer-events: none;
+        border: 1px solid transparent;
+        background-image:
+          linear-gradient(to right, var(--border-strong) 12px, transparent 12px),
+          linear-gradient(to left, var(--border-strong) 12px, transparent 12px),
+          linear-gradient(to bottom, var(--border-strong) 12px, transparent 12px),
+          linear-gradient(to top, var(--border-strong) 12px, transparent 12px);
+        background-size: 100% 1px, 100% 1px, 1px 100%, 1px 100%;
+        background-position: top left, bottom right, top left, bottom right;
+        background-repeat: no-repeat;
+        z-index: 11;
+      }
+
+      .container {
+        position: relative;
+        z-index: 2;
+        padding: 18px 16px 14px;
+      }
+
+      /* HEADER ─────────────────────────────────────── */
+      .header {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .dot-wrap {
+        position: relative;
+        width: 10px;
+        height: 10px;
+        align-self: center;
+      }
+
+      .status-dot {
+        position: absolute;
+        inset: 1px;
+        border-radius: 50%;
+        background: var(--text-faint);
+        transition: background 200ms ease;
+      }
+
+      .status-dot.active {
+        background: var(--accent);
+        box-shadow: 0 0 8px rgba(212, 255, 63, 0.6);
+      }
+
+      .status-dot.active::after {
+        content: "";
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 1px solid var(--accent);
+        animation: ping 1.6s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+      }
+
+      @keyframes ping {
+        0% {
+          transform: scale(0.6);
+          opacity: 0.9;
+        }
+        100% {
+          transform: scale(2);
+          opacity: 0;
+        }
+      }
+
+      .brand {
+        font-family: "VT323", monospace;
+        font-size: 26px;
+        line-height: 1;
+        letter-spacing: 0.02em;
+        color: var(--text);
+      }
+
+      .brand .accent {
+        color: var(--accent);
+      }
+
+      .mode {
+        margin-left: auto;
+        align-self: center;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        padding: 3px 7px;
+        border: 1px solid var(--border);
+        background: var(--bg-elev);
+      }
+
+      .mode.active {
+        color: var(--bg);
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+
+      /* SECTION LABELS ─────────────────────────────── */
+      .section-label {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.24em;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        margin: 4px 0 8px;
       }
 
-      input[type="number"],
-      input[type="text"] {
-        width: 100%;
-        box-sizing: border-box;
-        margin-top: 5px;
-        padding: 7px;
-        border: 1px solid rgba(127, 127, 127, 0.5);
-        border-radius: 6px;
+      .section-label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* TARGET ─────────────────────────────────────── */
+      .target {
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        padding: 9px 11px;
+        font-size: 11px;
+        line-height: 1.45;
+        color: var(--text);
+        overflow-wrap: anywhere;
+        margin-bottom: 16px;
+        position: relative;
+      }
+
+      .target::before {
+        content: "▸";
+        color: var(--accent-dim);
+        margin-right: 6px;
+      }
+
+      .target.unsupported {
+        color: var(--danger);
+      }
+
+      .target.unsupported::before {
+        color: var(--danger);
+      }
+
+      /* ROWS ───────────────────────────────────────── */
+      .rows {
+        margin-bottom: 16px;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px dashed var(--border);
+      }
+
+      .row:last-of-type {
+        border-bottom: 0;
+      }
+
+      .row-label {
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        flex: 0 0 auto;
+      }
+
+      .row-value {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .input {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text);
         font: inherit;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 6px 9px;
+        text-align: right;
+        width: 78px;
+        transition:
+          border-color 140ms ease,
+          background 140ms ease;
+      }
+
+      .input:hover:not(:disabled) {
+        border-color: var(--border-strong);
+      }
+
+      .input:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: var(--bg-elev);
+      }
+
+      .input.wide {
+        width: 110px;
+      }
+
+      .input::-webkit-inner-spin-button,
+      .input::-webkit-outer-spin-button {
+        opacity: 0.3;
+      }
+
+      .unit {
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        color: var(--text-dim);
+        text-transform: uppercase;
+      }
+
+      /* TOGGLE ─────────────────────────────────────── */
+      .toggle {
+        position: relative;
+        display: inline-block;
+        width: 38px;
+        height: 20px;
+      }
+
+      .toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        inset: 0;
+        cursor: pointer;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        transition: 180ms ease;
+      }
+
+      .toggle-slider::before {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        left: 3px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--text-dim);
+        transition: 180ms ease;
+      }
+
+      .toggle input:checked + .toggle-slider {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .toggle input:checked + .toggle-slider::before {
+        background: var(--bg);
+        left: 23px;
+      }
+
+      .toggle input:focus-visible + .toggle-slider {
+        outline: 1px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      /* ACTIONS ────────────────────────────────────── */
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .button-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
       }
 
       button {
-        width: 100%;
-        margin-top: 10px;
-        padding: 8px 10px;
-        border: 0;
-        border-radius: 8px;
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font: inherit;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 11px 12px;
         cursor: pointer;
-        font-weight: 650;
+        transition:
+          background 140ms ease,
+          border-color 140ms ease,
+          transform 80ms ease,
+          color 140ms ease;
+      }
+
+      button:hover:not(:disabled) {
+        border-color: var(--border-strong);
+        background: #1f1f1b;
+      }
+
+      button:active:not(:disabled) {
+        transform: translateY(1px);
+      }
+
+      button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
       }
 
       button.primary {
-        background: #0a84ff;
-        color: white;
+        background: var(--accent);
+        color: var(--bg);
+        border-color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        position: relative;
       }
 
-      button.secondary {
-        background: rgba(127, 127, 127, 0.16);
-        color: inherit;
+      button.primary::before {
+        content: "▸";
+        margin-right: 8px;
       }
 
-      .note {
+      button.primary:hover:not(:disabled) {
+        background: var(--accent-hover);
+        border-color: var(--accent-hover);
+      }
+
+      button.danger {
+        color: var(--danger);
+      }
+
+      button.danger:hover:not(:disabled) {
+        border-color: var(--danger);
+        background: rgba(255, 92, 66, 0.07);
+      }
+
+      /* STATUS LINE ────────────────────────────────── */
+      .status-line {
         margin-top: 12px;
-        color: #666;
-        font-size: 12px;
-        line-height: 1.35;
+        min-height: 14px;
+        font-size: 9.5px;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
 
-      .status {
-        min-height: 16px;
-        margin-top: 10px;
-        font-size: 12px;
+      .status-line:not(:empty)::before {
+        content: "//";
+        opacity: 0.6;
       }
 
-      .error {
-        color: #b00020;
+      .status-line.error {
+        color: var(--danger);
       }
 
-      .success {
-        color: #16833a;
+      .status-line.success {
+        color: var(--accent);
+      }
+
+      /* FOOTER ─────────────────────────────────────── */
+      .footer {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        line-height: 1.6;
+        color: var(--text-faint);
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .footer .sep {
+        color: var(--border-strong);
+      }
+
+      /* STAGGERED ENTRANCE ─────────────────────────── */
+      .container > * {
+        animation: rise 380ms cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
+      }
+      .container > *:nth-child(1) {
+        animation-delay: 0ms;
+      }
+      .container > *:nth-child(2) {
+        animation-delay: 40ms;
+      }
+      .container > *:nth-child(3) {
+        animation-delay: 80ms;
+      }
+      .container > *:nth-child(4) {
+        animation-delay: 120ms;
+      }
+      .container > *:nth-child(5) {
+        animation-delay: 160ms;
+      }
+      .container > *:nth-child(6) {
+        animation-delay: 200ms;
+      }
+      .container > *:nth-child(7) {
+        animation-delay: 240ms;
+      }
+      .container > *:nth-child(8) {
+        animation-delay: 280ms;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .container > *,
+        .status-dot.active::after {
+          animation: none;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>Cache-Bust Auto Refresh</h1>
+    <div class="container">
+      <div class="header">
+        <span class="dot-wrap"><span class="status-dot" id="statusDot"></span></span>
+        <span class="brand">cache<span class="accent">.</span>bust</span>
+        <span class="mode" id="modeLabel">IDLE</span>
+      </div>
 
-    <div class="url" id="url">Loading current page…</div>
+      <div class="section-label">target</div>
+      <div class="target" id="url">loading current page…</div>
 
-    <label class="checkbox-label">
-      <input type="checkbox" id="enabled" />
-      <span>Enable auto-refresh for this page</span>
-    </label>
+      <div class="section-label">parameters</div>
 
-    <label>
-      Refresh every seconds
-      <input type="number" id="seconds" min="1" step="1" value="15" />
-    </label>
+      <div class="rows">
+        <div class="row">
+          <span class="row-label">auto-refresh</span>
+          <span class="row-value">
+            <label class="toggle">
+              <input type="checkbox" id="enabled" />
+              <span class="toggle-slider"></span>
+            </label>
+          </span>
+        </div>
 
-    <label>
-      Cache-bust query param
-      <input type="text" id="paramName" value="_cb" />
-    </label>
+        <div class="row">
+          <span class="row-label">interval</span>
+          <span class="row-value">
+            <input
+              type="number"
+              id="seconds"
+              class="input"
+              min="1"
+              step="1"
+              value="15"
+            />
+            <span class="unit">sec</span>
+          </span>
+        </div>
 
-    <label class="checkbox-label">
-      <input type="checkbox" id="addNoCacheHeaders" checked />
-      <span>Attempt no-cache request headers</span>
-    </label>
+        <div class="row">
+          <span class="row-label">param</span>
+          <span class="row-value">
+            <input type="text" id="paramName" class="input wide" value="_cb" />
+          </span>
+        </div>
 
-    <button class="primary" id="save">Save</button>
-    <button class="secondary" id="turnOff">Turn off auto-refresh</button>
-    <button class="secondary" id="hardReload">Hard reload now</button>
+        <div class="row">
+          <span class="row-label">no-cache hdrs</span>
+          <span class="row-value">
+            <label class="toggle">
+              <input type="checkbox" id="addNoCacheHeaders" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </span>
+        </div>
+      </div>
 
-    <div class="status" id="status"></div>
+      <div class="actions">
+        <button class="primary" id="save">commit</button>
+        <div class="button-row">
+          <button class="danger" id="turnOff">disengage</button>
+          <button id="hardReload">hard reload</button>
+        </div>
+      </div>
 
-    <div class="note">
-      This is best-effort. It can help with browser cache and some shared caches,
-      but it cannot force a third-party CDN or origin to serve fresh content.
+      <div class="status-line" id="status"></div>
+
+      <div class="footer">
+        <span>best-effort · cdn may override</span>
+        <span class="sep">v1</span>
+      </div>
     </div>
 
     <script src="popup.js"></script>

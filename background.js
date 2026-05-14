@@ -83,8 +83,17 @@ async function enableNoCacheHeadersForTab(tabId) {
 
   await chrome.action.setBadgeBackgroundColor({
     tabId: numericTabId,
-    color: "#0A84FF"
+    color: "#D4FF3F"
   });
+
+  try {
+    await chrome.action.setBadgeTextColor({
+      tabId: numericTabId,
+      color: "#0B0B0A"
+    });
+  } catch {
+    // older Chrome may not support setBadgeTextColor
+  }
 
   await chrome.action.setBadgeText({
     tabId: numericTabId,
@@ -136,8 +145,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case "SET_BADGE_ENABLED": {
         await chrome.action.setBadgeBackgroundColor({
           tabId: Number(tabId),
-          color: "#0A84FF"
+          color: "#D4FF3F"
         });
+
+        try {
+          await chrome.action.setBadgeTextColor({
+            tabId: Number(tabId),
+            color: "#0B0B0A"
+          });
+        } catch {
+          // older Chrome may not support setBadgeTextColor
+        }
 
         await chrome.action.setBadgeText({
           tabId: Number(tabId),

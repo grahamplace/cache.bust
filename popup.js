@@ -65,11 +65,20 @@ function setStatus(message, kind) {
   const status = document.getElementById("status");
 
   status.textContent = message || "";
-  status.className = "status";
+  status.className = "status-line";
 
   if (kind) {
     status.classList.add(kind);
   }
+}
+
+function setActiveIndicator(enabled) {
+  const dot = document.getElementById("statusDot");
+  const mode = document.getElementById("modeLabel");
+
+  dot.classList.toggle("active", Boolean(enabled));
+  mode.classList.toggle("active", Boolean(enabled));
+  mode.textContent = enabled ? "ACTIVE" : "IDLE";
 }
 
 async function sendRuntimeMessage(message) {
@@ -103,11 +112,17 @@ async function loadConfig() {
   currentTab = await getCurrentTab();
 
   if (!currentTab || !currentTab.url || !isSupportedUrl(currentTab.url)) {
-    document.getElementById("url").textContent =
-      "This extension only works on http:// and https:// pages.";
+    const urlEl = document.getElementById("url");
+    urlEl.textContent = "only http:// and https:// pages are supported";
+    urlEl.classList.add("unsupported");
 
     document.getElementById("save").disabled = true;
+    document.getElementById("turnOff").disabled = true;
     document.getElementById("hardReload").disabled = true;
+    document.getElementById("enabled").disabled = true;
+    document.getElementById("seconds").disabled = true;
+    document.getElementById("paramName").disabled = true;
+    document.getElementById("addNoCacheHeaders").disabled = true;
 
     return;
   }
@@ -123,6 +138,7 @@ async function loadConfig() {
   };
 
   writeConfigToForm(config);
+  setActiveIndicator(config.enabled);
 }
 
 async function saveConfig() {
@@ -160,11 +176,12 @@ async function saveConfig() {
     });
   }
 
-  setStatus("Saved.", "success");
+  setActiveIndicator(config.enabled);
+  setStatus(config.enabled ? "engaged" : "saved", "success");
 
   setTimeout(() => {
     window.close();
-  }, 350);
+  }, 450);
 }
 
 async function turnOff() {
@@ -191,7 +208,8 @@ async function turnOff() {
     tabId: currentTab.id
   });
 
-  setStatus("Auto-refresh turned off.", "success");
+  setActiveIndicator(false);
+  setStatus("disengaged", "success");
 }
 
 async function hardReloadNow() {
@@ -210,7 +228,7 @@ async function hardReloadNow() {
     return;
   }
 
-  setStatus("Hard reload requested.", "success");
+  setStatus("hard reload dispatched", "success");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
