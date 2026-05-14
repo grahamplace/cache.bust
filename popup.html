@@ -421,47 +421,45 @@
       }
 
       /* STATUS LINE ────────────────────────────────── */
-      .status-line {
+      /* FOOTER ─────────────────────────────────────── */
+      .footer {
+        margin-top: 14px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+        height: 30px;
+        box-sizing: content-box;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        line-height: 1;
+        color: var(--text-faint);
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .footer .status {
         font-size: 11px;
         font-weight: 600;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
+        letter-spacing: 0.14em;
         color: var(--text-dim);
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 6px;
       }
 
-      .status-line:not(:empty) {
-        margin-top: 12px;
-      }
-
-      .status-line:not(:empty)::before {
+      .footer .status:not(:empty)::before {
         content: "//";
-        opacity: 0.6;
+        opacity: 0.55;
       }
 
-      .status-line.error {
+      .footer .status.error {
         color: var(--danger);
       }
 
-      .status-line.success {
+      .footer .status.success {
         color: var(--accent);
-      }
-
-      /* FOOTER ─────────────────────────────────────── */
-      .footer {
-        margin-top: 10px;
-        padding-top: 8px;
-        border-top: 1px solid var(--border);
-        font-size: 9px;
-        font-weight: 500;
-        letter-spacing: 0.18em;
-        line-height: 1.2;
-        color: var(--text-faint);
-        text-transform: uppercase;
-        display: flex;
-        justify-content: flex-end;
       }
 
       .footer .sep {
@@ -571,9 +569,8 @@
         </div>
       </div>
 
-      <div class="status-line" id="status"></div>
-
       <div class="footer">
+        <span class="status" id="status"></span>
         <span class="sep">v1</span>
       </div>
     </div>

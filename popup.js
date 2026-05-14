@@ -65,7 +65,7 @@ function setStatus(message, kind) {
   const status = document.getElementById("status");
 
   status.textContent = message || "";
-  status.className = "status-line";
+  status.className = "status";
 
   if (kind) {
     status.classList.add(kind);
