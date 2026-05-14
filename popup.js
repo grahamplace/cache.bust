@@ -5,6 +5,9 @@ const DEFAULT_CONFIG = {
   addNoCacheHeaders: true
 };
 
+const MIN_SECONDS = 1;
+const MAX_SECONDS = 86400;
+
 let currentTab = null;
 let currentStorageKey = null;
 
@@ -49,7 +52,7 @@ function normalizeSeconds(value) {
 
   if (!Number.isFinite(parsed)) return DEFAULT_CONFIG.seconds;
 
-  return Math.max(1, Math.floor(parsed));
+  return Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, Math.floor(parsed)));
 }
 
 async function getCurrentTab() {
@@ -78,7 +81,26 @@ function setActiveIndicator(enabled) {
 
   dot.classList.toggle("active", Boolean(enabled));
   mode.classList.toggle("active", Boolean(enabled));
-  mode.textContent = enabled ? "ACTIVE" : "IDLE";
+  mode.textContent = enabled ? "ENGAGED" : "IDLE";
+}
+
+function checkParamCollision() {
+  if (!currentTab || !currentTab.url) return;
+
+  const paramName = normalizeParamName(document.getElementById("paramName").value);
+  const url = new URL(currentTab.url);
+  const collides =
+    url.searchParams.has(paramName) &&
+    url.searchParams.get(paramName) !== String(Date.now()).slice(0, 10);
+
+  // The page's own param will be overwritten on every refresh. Warn so the
+  // user can pick a different name if it would break the host page.
+  if (collides) {
+    setStatus(`paramName overlaps page's '${paramName}'`, "warn");
+  } else {
+    const status = document.getElementById("status");
+    if (status.classList.contains("warn")) setStatus("");
+  }
 }
 
 async function sendRuntimeMessage(message) {
@@ -114,8 +136,8 @@ async function loadConfig() {
     urlEl.textContent = "only http:// and https:// pages are supported";
     urlEl.classList.add("unsupported");
 
-    document.getElementById("save").disabled = true;
-    document.getElementById("turnOff").disabled = true;
+    document.getElementById("start").disabled = true;
+    document.getElementById("disengage").disabled = true;
     document.getElementById("hardReload").disabled = true;
     document.getElementById("seconds").disabled = true;
     document.getElementById("paramName").disabled = true;
@@ -136,9 +158,10 @@ async function loadConfig() {
 
   writeConfigToForm(config);
   setActiveIndicator(config.enabled);
+  checkParamCollision();
 }
 
-async function saveConfig() {
+async function engage() {
   if (!currentTab || !currentStorageKey) return;
 
   const config = {
@@ -171,7 +194,7 @@ async function saveConfig() {
   setStatus("engaged", "success");
 }
 
-async function turnOff() {
+async function disengage() {
   if (!currentTab || !currentStorageKey) return;
 
   const config = {
@@ -224,15 +247,15 @@ document.addEventListener("DOMContentLoaded", () => {
     setStatus(error instanceof Error ? error.message : String(error), "error");
   });
 
-  document.getElementById("save").addEventListener("click", () => {
-    saveConfig().catch((error) => {
+  document.getElementById("start").addEventListener("click", () => {
+    engage().catch((error) => {
       console.error(error);
       setStatus(error instanceof Error ? error.message : String(error), "error");
     });
   });
 
-  document.getElementById("turnOff").addEventListener("click", () => {
-    turnOff().catch((error) => {
+  document.getElementById("disengage").addEventListener("click", () => {
+    disengage().catch((error) => {
       console.error(error);
       setStatus(error instanceof Error ? error.message : String(error), "error");
     });
@@ -243,5 +266,9 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(error);
       setStatus(error instanceof Error ? error.message : String(error), "error");
     });
+  });
+
+  document.getElementById("paramName").addEventListener("input", () => {
+    checkParamCollision();
   });
 });

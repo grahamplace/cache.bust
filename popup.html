@@ -3,13 +3,23 @@
   <head>
     <meta charset="utf-8" />
     <title>cache.bust</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=VT323&display=swap"
-      rel="stylesheet"
-    />
     <style>
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400 700;
+        font-display: block;
+        src: url("fonts/jetbrains-mono.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "VT323";
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url("fonts/vt323.woff2") format("woff2");
+      }
+
       :root {
         --bg: #0b0b0a;
         --bg-elev: #1a1a17;
@@ -407,7 +417,7 @@
         margin-right: 10px;
         font-size: 14px;
         line-height: 1;
-        vertical-align: -1px;
+        vertical-align: 1px;
       }
 
       button.primary:hover:not(:disabled) {
@@ -429,7 +439,7 @@
         margin-right: 8px;
         font-size: 13px;
         line-height: 1;
-        vertical-align: -1px;
+        vertical-align: 0;
       }
 
       button.reload::before {
@@ -438,7 +448,7 @@
         width: 14px;
         height: 14px;
         margin-right: 8px;
-        vertical-align: -3px;
+        vertical-align: -2px;
         background-color: currentColor;
         -webkit-mask: url("icons/reload.svg") no-repeat center / contain;
         mask: url("icons/reload.svg") no-repeat center / contain;
@@ -467,10 +477,16 @@
         font-size: 11px;
         font-weight: 600;
         letter-spacing: 0.14em;
+        text-transform: uppercase;
         color: var(--text-dim);
         display: inline-flex;
         align-items: center;
         gap: 6px;
+      }
+
+      .footer .status.warn {
+        color: var(--accent);
+        opacity: 0.85;
       }
 
       .footer .status:not(:empty)::before {
@@ -560,6 +576,7 @@
               id="seconds"
               class="input"
               min="1"
+              max="86400"
               step="1"
               value="15"
             />
@@ -586,9 +603,9 @@
       </div>
 
       <div class="actions">
-        <button class="primary" id="save">start auto-refresh</button>
+        <button class="primary" id="start">start auto-refresh</button>
         <div class="button-row">
-          <button class="danger" id="turnOff">disengage</button>
+          <button class="danger" id="disengage">disengage</button>
           <button class="reload" id="hardReload">hard reload</button>
         </div>
       </div>

@@ -20,12 +20,15 @@ function normalizeParamName(value) {
   return trimmed.replace(/[^a-zA-Z0-9_.~-]/g, "_");
 }
 
+const MIN_SECONDS = 1;
+const MAX_SECONDS = 86400;
+
 function normalizeSeconds(value) {
   const parsed = Number(value);
 
   if (!Number.isFinite(parsed)) return DEFAULT_CONFIG.seconds;
 
-  return Math.max(1, Math.floor(parsed));
+  return Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, Math.floor(parsed)));
 }
 
 function getPageKeyFromLocation() {

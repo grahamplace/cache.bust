@@ -1,4 +1,6 @@
 const HEADER_RULE_BASE_ID = 900000;
+const BADGE_BG = "#D4FF3F";
+const BADGE_FG = "#0B0B0A";
 
 const RESOURCE_TYPES_TO_REVALIDATE = [
   "main_frame",
@@ -16,6 +18,13 @@ function getHeaderRuleId(tabId) {
   return HEADER_RULE_BASE_ID + Number(tabId);
 }
 
+function getPageKeyFromUrl(rawUrl) {
+  const url = new URL(rawUrl);
+  url.search = "";
+  url.hash = "";
+  return `cacheBustAutoRefresh:v1:${url.origin}${url.pathname}`;
+}
+
 async function removeNoCacheHeadersForTab(tabId) {
   if (!Number.isInteger(Number(tabId))) return;
 
@@ -27,15 +36,6 @@ async function removeNoCacheHeadersForTab(tabId) {
     });
   } catch (error) {
     console.warn("Failed to remove no-cache header rule", error);
-  }
-
-  try {
-    await chrome.action.setBadgeText({
-      tabId: Number(tabId),
-      text: ""
-    });
-  } catch {
-    // Tab may already be gone.
   }
 }
 
@@ -80,16 +80,20 @@ async function enableNoCacheHeadersForTab(tabId) {
     removeRuleIds: [ruleId],
     addRules: [rule]
   });
+}
+
+async function setBadgeOn(tabId) {
+  const numericTabId = Number(tabId);
 
   await chrome.action.setBadgeBackgroundColor({
     tabId: numericTabId,
-    color: "#D4FF3F"
+    color: BADGE_BG
   });
 
   try {
     await chrome.action.setBadgeTextColor({
       tabId: numericTabId,
-      color: "#0B0B0A"
+      color: BADGE_FG
     });
   } catch {
     // older Chrome may not support setBadgeTextColor
@@ -99,6 +103,17 @@ async function enableNoCacheHeadersForTab(tabId) {
     tabId: numericTabId,
     text: "ON"
   });
+}
+
+async function clearBadge(tabId) {
+  try {
+    await chrome.action.setBadgeText({
+      tabId: Number(tabId),
+      text: ""
+    });
+  } catch {
+    // Tab may already be gone.
+  }
 }
 
 async function hardReloadTab(tabId, addNoCacheHeaders) {
@@ -143,34 +158,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
 
       case "SET_BADGE_ENABLED": {
-        await chrome.action.setBadgeBackgroundColor({
-          tabId: Number(tabId),
-          color: "#D4FF3F"
-        });
-
-        try {
-          await chrome.action.setBadgeTextColor({
-            tabId: Number(tabId),
-            color: "#0B0B0A"
-          });
-        } catch {
-          // older Chrome may not support setBadgeTextColor
-        }
-
-        await chrome.action.setBadgeText({
-          tabId: Number(tabId),
-          text: "ON"
-        });
-
+        await setBadgeOn(tabId);
         return { ok: true };
       }
 
       case "CLEAR_BADGE": {
-        await chrome.action.setBadgeText({
-          tabId: Number(tabId),
-          text: ""
-        });
-
+        await clearBadge(tabId);
         return { ok: true };
       }
 
@@ -194,4 +187,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   removeNoCacheHeadersForTab(tabId);
+});
+
+// If a tab navigates to a different storage-key target (different origin or
+// pathname), tear down the DNR rule and badge so we don't keep injecting
+// no-cache headers into a site the user didn't opt into.
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+  if (!changeInfo.url) return;
+
+  let nextKey = null;
+  try {
+    nextKey = getPageKeyFromUrl(changeInfo.url);
+  } catch {
+    // non-URL navigations (chrome://, about:, etc.)
+    await removeNoCacheHeadersForTab(tabId);
+    await clearBadge(tabId);
+    return;
+  }
+
+  const stored = await chrome.storage.local.get(nextKey);
+  const config = stored[nextKey];
+
+  if (!config || !config.enabled) {
+    await removeNoCacheHeadersForTab(tabId);
+    await clearBadge(tabId);
+  }
 });
