@@ -94,7 +94,6 @@ async function sendRuntimeMessage(message) {
 
 function readConfigFromForm() {
   return {
-    enabled: document.getElementById("enabled").checked,
     seconds: normalizeSeconds(document.getElementById("seconds").value),
     paramName: normalizeParamName(document.getElementById("paramName").value),
     addNoCacheHeaders: document.getElementById("addNoCacheHeaders").checked
@@ -102,7 +101,6 @@ function readConfigFromForm() {
 }
 
 function writeConfigToForm(config) {
-  document.getElementById("enabled").checked = Boolean(config.enabled);
   document.getElementById("seconds").value = normalizeSeconds(config.seconds);
   document.getElementById("paramName").value = normalizeParamName(config.paramName);
   document.getElementById("addNoCacheHeaders").checked = Boolean(config.addNoCacheHeaders);
@@ -119,7 +117,6 @@ async function loadConfig() {
     document.getElementById("save").disabled = true;
     document.getElementById("turnOff").disabled = true;
     document.getElementById("hardReload").disabled = true;
-    document.getElementById("enabled").disabled = true;
     document.getElementById("seconds").disabled = true;
     document.getElementById("paramName").disabled = true;
     document.getElementById("addNoCacheHeaders").disabled = true;
@@ -144,40 +141,34 @@ async function loadConfig() {
 async function saveConfig() {
   if (!currentTab || !currentStorageKey) return;
 
-  const config = readConfigFromForm();
+  const config = {
+    ...readConfigFromForm(),
+    enabled: true
+  };
 
   await chrome.storage.local.set({
     [currentStorageKey]: config
   });
 
-  if (config.enabled && config.addNoCacheHeaders) {
+  if (config.addNoCacheHeaders) {
     await sendRuntimeMessage({
       type: "PREPARE_NO_CACHE_HEADERS",
       tabId: currentTab.id
     });
-  }
-
-  if (!config.enabled || !config.addNoCacheHeaders) {
+  } else {
     await sendRuntimeMessage({
       type: "DISABLE_NO_CACHE_HEADERS",
       tabId: currentTab.id
     });
   }
 
-  if (config.enabled) {
-    await sendRuntimeMessage({
-      type: "SET_BADGE_ENABLED",
-      tabId: currentTab.id
-    });
-  } else {
-    await sendRuntimeMessage({
-      type: "CLEAR_BADGE",
-      tabId: currentTab.id
-    });
-  }
+  await sendRuntimeMessage({
+    type: "SET_BADGE_ENABLED",
+    tabId: currentTab.id
+  });
 
-  setActiveIndicator(config.enabled);
-  setStatus(config.enabled ? "engaged" : "saved", "success");
+  setActiveIndicator(true);
+  setStatus("engaged", "success");
 
   setTimeout(() => {
     window.close();

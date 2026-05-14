@@ -6,23 +6,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=VT323&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=VT323&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
         --bg: #0b0b0a;
-        --bg-elev: #161613;
-        --bg-input: #1c1c18;
-        --border: #2a2a26;
-        --border-strong: #3d3d37;
-        --text: #ede9dd;
-        --text-dim: #7a786e;
-        --text-faint: #4a4a45;
+        --bg-elev: #1a1a17;
+        --bg-input: #20201c;
+        --border: #36362f;
+        --border-strong: #4d4d44;
+        --text: #f4f1e6;
+        --text-dim: #b3b0a2;
+        --text-faint: #807d72;
         --accent: #d4ff3f;
         --accent-hover: #e5ff6a;
-        --accent-dim: #8fb02a;
-        --danger: #ff5c42;
+        --accent-dim: #b8e22f;
+        --danger: #ff6b52;
       }
 
       * {
@@ -37,10 +37,11 @@
         color: var(--text);
         font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
           monospace;
-        font-size: 12px;
-        font-weight: 400;
+        font-size: 13px;
+        font-weight: 500;
         width: 340px;
         -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
 
       /* faint horizontal scanlines for the monitor feel */
@@ -80,7 +81,7 @@
       .container {
         position: relative;
         z-index: 2;
-        padding: 18px 16px 14px;
+        padding: 18px 16px 10px;
       }
 
       /* HEADER ─────────────────────────────────────── */
@@ -133,7 +134,7 @@
 
       .brand {
         font-family: "VT323", monospace;
-        font-size: 26px;
+        font-size: 28px;
         line-height: 1;
         letter-spacing: 0.02em;
         color: var(--text);
@@ -146,12 +147,12 @@
       .mode {
         margin-left: auto;
         align-self: center;
-        font-size: 9px;
-        font-weight: 500;
-        letter-spacing: 0.22em;
-        color: var(--text-dim);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        color: var(--text);
         text-transform: uppercase;
-        padding: 3px 7px;
+        padding: 4px 8px;
         border: 1px solid var(--border);
         background: var(--bg-elev);
       }
@@ -167,9 +168,9 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        font-size: 9px;
-        font-weight: 500;
-        letter-spacing: 0.24em;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
         color: var(--text-dim);
         text-transform: uppercase;
         margin: 4px 0 8px;
@@ -186,9 +187,9 @@
       .target {
         background: var(--bg-elev);
         border: 1px solid var(--border);
-        padding: 9px 11px;
-        font-size: 11px;
-        line-height: 1.45;
+        padding: 10px 12px;
+        font-size: 12px;
+        line-height: 1.5;
         color: var(--text);
         overflow-wrap: anywhere;
         margin-bottom: 16px;
@@ -227,9 +228,9 @@
       }
 
       .row-label {
-        font-size: 10px;
-        font-weight: 500;
-        letter-spacing: 0.18em;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
         color: var(--text-dim);
         text-transform: uppercase;
         flex: 0 0 auto;
@@ -248,11 +249,11 @@
         border: 1px solid var(--border);
         color: var(--text);
         font: inherit;
-        font-size: 12px;
-        font-weight: 500;
-        padding: 6px 9px;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 7px 10px;
         text-align: right;
-        width: 78px;
+        width: 84px;
         transition:
           border-color 140ms ease,
           background 140ms ease;
@@ -269,17 +270,29 @@
       }
 
       .input.wide {
-        width: 110px;
+        width: 130px;
+      }
+
+      .input[type="text"] {
+        text-align: left;
+        caret-color: var(--accent);
+      }
+
+      .input[type="text"]::selection {
+        background: var(--accent);
+        color: var(--bg);
       }
 
       .input::-webkit-inner-spin-button,
       .input::-webkit-outer-spin-button {
-        opacity: 0.3;
+        opacity: 0.45;
+        margin-left: 10px;
       }
 
       .unit {
-        font-size: 10px;
-        letter-spacing: 0.1em;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
         color: var(--text-dim);
         text-transform: uppercase;
       }
@@ -352,9 +365,9 @@
         border: 1px solid var(--border);
         color: var(--text);
         font: inherit;
-        font-size: 11px;
-        font-weight: 500;
-        letter-spacing: 0.16em;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
         padding: 11px 12px;
         cursor: pointer;
@@ -384,7 +397,7 @@
         color: var(--bg);
         border-color: var(--accent);
         font-weight: 700;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.18em;
         position: relative;
       }
 
@@ -409,16 +422,18 @@
 
       /* STATUS LINE ────────────────────────────────── */
       .status-line {
-        margin-top: 12px;
-        min-height: 14px;
-        font-size: 9.5px;
-        font-weight: 500;
-        letter-spacing: 0.16em;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
         color: var(--text-dim);
         display: flex;
         align-items: center;
         gap: 6px;
+      }
+
+      .status-line:not(:empty) {
+        margin-top: 12px;
       }
 
       .status-line:not(:empty)::before {
@@ -436,17 +451,17 @@
 
       /* FOOTER ─────────────────────────────────────── */
       .footer {
-        margin-top: 16px;
-        padding-top: 12px;
+        margin-top: 10px;
+        padding-top: 8px;
         border-top: 1px solid var(--border);
         font-size: 9px;
         font-weight: 500;
         letter-spacing: 0.18em;
-        line-height: 1.6;
+        line-height: 1.2;
         color: var(--text-faint);
         text-transform: uppercase;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
       }
 
       .footer .sep {
@@ -516,16 +531,6 @@
 
       <div class="rows">
         <div class="row">
-          <span class="row-label">auto-refresh</span>
-          <span class="row-value">
-            <label class="toggle">
-              <input type="checkbox" id="enabled" />
-              <span class="toggle-slider"></span>
-            </label>
-          </span>
-        </div>
-
-        <div class="row">
           <span class="row-label">interval</span>
           <span class="row-value">
             <input
@@ -548,7 +553,7 @@
         </div>
 
         <div class="row">
-          <span class="row-label">no-cache hdrs</span>
+          <span class="row-label">no-cache headers</span>
           <span class="row-value">
             <label class="toggle">
               <input type="checkbox" id="addNoCacheHeaders" checked />
@@ -559,7 +564,7 @@
       </div>
 
       <div class="actions">
-        <button class="primary" id="save">commit</button>
+        <button class="primary" id="save">start auto-refresh</button>
         <div class="button-row">
           <button class="danger" id="turnOff">disengage</button>
           <button id="hardReload">hard reload</button>
@@ -569,7 +574,6 @@
       <div class="status-line" id="status"></div>
 
       <div class="footer">
-        <span>best-effort · cdn may override</span>
         <span class="sep">v1</span>
       </div>
     </div>
