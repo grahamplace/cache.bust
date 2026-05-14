@@ -139,7 +139,7 @@ async function loadConfig() {
 }
 
 async function saveConfig() {
-  if (!currentTab || !currentStorageKey) return;
+  if (!currentTab || !currentTab.url || !currentStorageKey) return;
 
   const config = {
     ...readConfigFromForm(),
@@ -170,9 +170,15 @@ async function saveConfig() {
   setActiveIndicator(true);
   setStatus("engaged", "success");
 
-  setTimeout(() => {
-    window.close();
-  }, 450);
+  const cacheBustedUrl = (() => {
+    const url = new URL(currentTab.url);
+    url.searchParams.set(config.paramName, Date.now().toString());
+    return url.toString();
+  })();
+
+  await chrome.tabs.update(currentTab.id, { url: cacheBustedUrl });
+
+  window.close();
 }
 
 async function turnOff() {
